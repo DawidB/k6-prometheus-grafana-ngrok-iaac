@@ -1,0 +1,1 @@
+docker compose  --project-directory ../ up -d prometheus grafana ngrok

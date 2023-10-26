@@ -1,0 +1,7 @@
+# TLS and basic authentication configuration example.
+
+# Usernames and passwords required to connect to Prometheus.
+# Passwords are hashed with bcrypt: https://github.com/prometheus/exporter-toolkit/blob/master/docs/web-configuration.md#about-bcrypt
+basic_auth_users:
+    admin: <encrypted-password-1>
+    remote-writer: <encrypted-password-2>

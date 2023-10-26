@@ -1,0 +1,65 @@
+version: '3.8'
+name: k6-grafana-prom
+
+networks:
+  k6:
+
+services:
+  prometheus:
+    image: prom/prometheus:v2.47.0
+    restart: unless-stopped
+    command:
+      - --web.enable-remote-write-receiver
+      - --enable-feature=native-histograms
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --web.config.file=/etc/prometheus/web-config.yml
+    networks:
+      - k6
+    ports:
+      - "9090:9090"
+    volumes:
+      - prometheus-data:/prometheus
+      - ./prometheus/:/etc/prometheus/
+
+  grafana:
+    image: grafana/grafana:10.1.2
+    restart: unless-stopped
+    networks:
+      - k6
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_INSTALL_IMAGE_RENDERER_PLUGIN=true
+    volumes:
+      - grafana-storage:/var/lib/grafana
+      - ./grafana/:/etc/grafana/
+      - ./grafana/provisioning/:/etc/grafana/provisioning/
+    depends_on:
+      - prometheus
+
+  ngrok:
+    image: ngrok/ngrok:latest
+    restart: unless-stopped
+    environment:
+      - NGROK_AUTHTOKEN=<auth-token>
+    command:
+      - "http"
+      - "--basic-auth=admin:<plain-text-password>"
+      - "--basic-auth=remote-writer:<plain-text-password-2>"
+      - "--domain=<domain-address>"
+      - "http://prometheus:9090"
+      - "--log=stdout"
+    networks:
+      - k6
+    ports:
+      - 4040:4040
+    depends_on:
+      - prometheus
+
+volumes:
+  prometheus-data:
+    name: prometheus-data
+    external: true
+  grafana-storage:
+    name: grafana-storage
+    external: true

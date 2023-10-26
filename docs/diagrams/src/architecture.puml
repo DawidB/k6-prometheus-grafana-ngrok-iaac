@@ -1,0 +1,18 @@
+@startuml Architecture
+rectangle "Github-hosted runner" as Github {
+    [Workflow with K6 test] as K6
+}
+
+rectangle "Self-hosted docker engine" as Docker {
+    [Ngrok Agent] as NgrokAgent
+    [Prometheus] as Prometheus
+    [Grafana] as Grafana
+}
+
+cloud "Ngrok domain" as NgrokDomain
+
+K6 --> NgrokDomain : "POST metrics"
+NgrokDomain --> NgrokAgent : "pass metrics"
+NgrokAgent --> Prometheus : "write metrics"
+Grafana --> Prometheus : "visualize metrics"
+@enduml
